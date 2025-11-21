@@ -36,7 +36,7 @@ Este sistema proporciona una API REST completa para:
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/erick9125/turnos-asistencia-api.git
 cd turnos-asistencia-api
 ```
 
