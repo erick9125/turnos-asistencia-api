@@ -1,0 +1,2932 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Sistema de Gestión de Turnos y Asistencia API",
+        "description": "API REST para la gestión de turnos de trabajo y control de asistencia de trabajadores. Permite registrar marcas de entrada y salida desde diferentes fuentes (relojes biométricos, aplicaciones remotas, sistemas externos) y asociarlas automáticamente con los turnos programados.",
+        "contact": {
+            "name": "Soporte Técnico",
+            "email": "support@example.com"
+        },
+        "license": {
+            "name": "Propietario",
+            "url": ""
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost",
+            "description": "Servidor de la API"
+        }
+    ],
+    "paths": {
+        "/api/v1/marks/remote": {
+            "post": {
+                "tags": [
+                    "Marcas"
+                ],
+                "summary": "Crear marca remota",
+                "description": "Crea una marca de asistencia desde una aplicación remota. Requiere rol de worker.",
+                "operationId": "a0cacfd0c34003758dbf95772f08e076",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MarkRemote"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Marca creada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Marca creada exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Mark"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación o marca duplicada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos (requiere rol worker)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/marks/batch/clock": {
+            "post": {
+                "tags": [
+                    "Marcas"
+                ],
+                "summary": "Crear marcas batch desde reloj",
+                "description": "Crea múltiples marcas desde un reloj biométrico. Requiere autenticación Sanctum.",
+                "operationId": "818aa503c5176576a3cc44c6b5f8a459",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MarkBatchClock"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Marcas procesadas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Marcas procesadas"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "created": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Mark"
+                                                    }
+                                                },
+                                                "errors": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "index": {
+                                                                "type": "integer"
+                                                            },
+                                                            "error": {
+                                                                "type": "string"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/marks/external": {
+            "post": {
+                "tags": [
+                    "Marcas"
+                ],
+                "summary": "Crear marca externa",
+                "description": "Crea una marca desde un sistema externo. Requiere API Key en header X-API-KEY.",
+                "operationId": "7ed9a345724eda57d37662428b44e636",
+                "parameters": [
+                    {
+                        "name": "X-API-KEY",
+                        "in": "header",
+                        "description": "API Key para autenticación",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/MarkExternal"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Marca externa creada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Marca externa creada exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Mark"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación o marca duplicada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "API Key inválida o faltante",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "apiKey": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/shifts": {
+            "get": {
+                "tags": [
+                    "Turnos"
+                ],
+                "summary": "Listar turnos",
+                "description": "Obtiene una lista de turnos con filtros opcionales. Requiere rol de manager.",
+                "operationId": "998383a9a252154a4a432d3d8101e6bb",
+                "parameters": [
+                    {
+                        "name": "worker_id",
+                        "in": "query",
+                        "description": "Filtrar por ID de trabajador",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "area_id",
+                        "in": "query",
+                        "description": "Filtrar por ID de área",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por estado",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "planned",
+                                "in_progress",
+                                "completed",
+                                "inconsistent",
+                                "absent"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "description": "Filtrar por fecha (formato: Y-m-d)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Fecha de inicio del rango",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Fecha de fin del rango",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de turnos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Turnos obtenidos exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Shift"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "No autenticado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos (requiere rol manager)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Turnos"
+                ],
+                "summary": "Crear turno",
+                "description": "Crea un nuevo turno. Valida que no se solape con otros turnos del mismo trabajador. Requiere rol de manager.",
+                "operationId": "f3e5c3181a93059a559ffd5c2bcf64ec",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ShiftStore"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Turno creado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Turno creado exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Shift"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación o regla de negocio",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos (requiere rol manager)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/shifts/{id}": {
+            "get": {
+                "tags": [
+                    "Turnos"
+                ],
+                "summary": "Obtener turno",
+                "description": "Obtiene los detalles de un turno específico. Requiere rol de manager.",
+                "operationId": "d6a0741982de213e495a240abdd87bc2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del turno",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del turno",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Turno obtenido exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Shift"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Turno no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Turnos"
+                ],
+                "summary": "Actualizar turno",
+                "description": "Actualiza un turno existente. Valida que no se solape con otros turnos. Requiere rol de manager.",
+                "operationId": "7c1008f8b5618c302392802e11d521ab",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del turno",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ShiftUpdate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Turno actualizado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Turno actualizado exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Shift"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación o regla de negocio",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Turnos"
+                ],
+                "summary": "Eliminar turno",
+                "description": "Elimina un turno. Solo se puede eliminar si no tiene marcas asociadas. Requiere rol de manager.",
+                "operationId": "b79f5994d6e48828b8f00d07685eaafb",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del turno",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Turno eliminado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Turno eliminado exitosamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "No se puede eliminar (tiene marcas asociadas)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/workers/{id}/shifts/week": {
+            "get": {
+                "tags": [
+                    "Turnos"
+                ],
+                "summary": "Turnos semanales de un trabajador",
+                "description": "Obtiene los turnos de un trabajador para una semana específica. Requiere rol de worker.",
+                "operationId": "217299f46b8171dae8d6aaa3e94ce1ae",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del trabajador",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "week_start",
+                        "in": "query",
+                        "description": "Fecha de inicio de la semana (formato: Y-m-d). Si no se proporciona, usa la semana actual.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de turnos de la semana",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Turnos obtenidos exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Shift"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos (requiere rol worker)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/auth/login": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Autenticación de usuario",
+                "description": "Autentica un usuario y retorna un token Sanctum para acceder a los endpoints protegidos",
+                "operationId": "106278eaf7f6c27449145495e7a9ad37",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login exitoso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoginResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/devices": {
+            "get": {
+                "tags": [
+                    "Dispositivos"
+                ],
+                "summary": "Listar dispositivos",
+                "description": "Obtiene una lista de dispositivos con filtros opcionales. Requiere rol de manager.",
+                "operationId": "4625b511d49c4afb0cc96f8cc3e095f5",
+                "parameters": [
+                    {
+                        "name": "area_id",
+                        "in": "query",
+                        "description": "Filtrar por ID de área",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filtrar por tipo",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "clock",
+                                "logical",
+                                "external"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por estado",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "active",
+                                "disabled"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de dispositivos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dispositivos obtenidos exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Device"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos (requiere rol manager)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Dispositivos"
+                ],
+                "summary": "Crear dispositivo",
+                "description": "Crea un nuevo dispositivo de marcación. Requiere rol de manager.",
+                "operationId": "bd3149a807342d9315666879e30db858",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeviceStore"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Dispositivo creado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dispositivo creado exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Device"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/devices/{id}": {
+            "get": {
+                "tags": [
+                    "Dispositivos"
+                ],
+                "summary": "Obtener dispositivo",
+                "description": "Obtiene los detalles de un dispositivo específico. Requiere rol de manager.",
+                "operationId": "19c01d6a98b7b856d42bcc1e435a1385",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del dispositivo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del dispositivo",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dispositivo obtenido exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Device"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Dispositivo no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/devices/{id}/disable": {
+            "patch": {
+                "tags": [
+                    "Dispositivos"
+                ],
+                "summary": "Desactivar dispositivo",
+                "description": "Desactiva un dispositivo cambiando su estado a 'disabled'. Requiere rol de manager.",
+                "operationId": "fb3f8e71e80d100cd9a6efa7a77c59d8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del dispositivo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dispositivo desactivado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Dispositivo desactivado exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Device"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error al desactivar",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/export/marks": {
+            "get": {
+                "tags": [
+                    "Exportación"
+                ],
+                "summary": "Exportar marcas para sistema legado",
+                "description": "Exporta marcas de asistencia en formato compatible con sistemas legados. Incluye información completa de jerarquía (holding, company, branch, area). Requiere rol de manager.",
+                "operationId": "430548b57aee58a18f309910a062f2f9",
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Fecha de inicio (formato: Y-m-d). Por defecto: último mes.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Fecha de fin (formato: Y-m-d). Por defecto: hoy.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "only_not_exported",
+                        "in": "query",
+                        "description": "Si es true, solo exporta marcas no exportadas previamente. Por defecto: true.",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Marcas exportadas exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Marcas exportadas exitosamente"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "marks": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "worker_id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "device_id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "direction": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "in",
+                                                                    "out"
+                                                                ],
+                                                                "example": "in"
+                                                            },
+                                                            "marked_at": {
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                                "example": "2024-01-15T08:05:00"
+                                                            },
+                                                            "source": {
+                                                                "type": "string",
+                                                                "enum": [
+                                                                    "remote",
+                                                                    "clock",
+                                                                    "external"
+                                                                ],
+                                                                "example": "clock"
+                                                            },
+                                                            "area_id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "branch_id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "company_id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "holding_id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "worker_name": {
+                                                                "type": "string",
+                                                                "example": "Juan Pérez"
+                                                            },
+                                                            "worker_rut": {
+                                                                "type": "string",
+                                                                "example": "11111111-1"
+                                                            },
+                                                            "device_name": {
+                                                                "type": "string",
+                                                                "example": "Reloj Biométrico Principal"
+                                                            },
+                                                            "device_key": {
+                                                                "type": "string",
+                                                                "example": "CLOCK-001"
+                                                            },
+                                                            "area_name": {
+                                                                "type": "string",
+                                                                "example": "Área de Producción"
+                                                            },
+                                                            "area_code": {
+                                                                "type": "string",
+                                                                "example": "PROD-001"
+                                                            },
+                                                            "branch_name": {
+                                                                "type": "string",
+                                                                "example": "Sucursal Centro"
+                                                            },
+                                                            "branch_code": {
+                                                                "type": "string",
+                                                                "example": "BR-001"
+                                                            },
+                                                            "company_name": {
+                                                                "type": "string",
+                                                                "example": "Empresa Ejemplo"
+                                                            },
+                                                            "company_rut": {
+                                                                "type": "string",
+                                                                "example": "12345678-9"
+                                                            },
+                                                            "holding_name": {
+                                                                "type": "string",
+                                                                "example": "Holding Principal"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "count": {
+                                                    "type": "integer",
+                                                    "example": 150
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos (requiere rol manager)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/export/marks/mark-as-exported": {
+            "post": {
+                "tags": [
+                    "Exportación"
+                ],
+                "summary": "Marcar marcas como exportadas",
+                "description": "Marca un conjunto de marcas como exportadas al sistema legado. Actualiza el campo exported_at. Requiere rol de manager.",
+                "operationId": "888cad982e31eef65bd154863e3dc00c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "mark_ids"
+                                ],
+                                "properties": {
+                                    "mark_ids": {
+                                        "description": "Array de IDs de marcas a marcar como exportadas",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            1,
+                                            2,
+                                            3,
+                                            4,
+                                            5
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Marcas marcadas como exportadas exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Se marcaron 5 marcas como exportadas"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "updated_count": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/export/statistics": {
+            "get": {
+                "tags": [
+                    "Exportación"
+                ],
+                "summary": "Estadísticas de exportación",
+                "description": "Obtiene estadísticas sobre el estado de exportación de marcas. Requiere rol de manager.",
+                "operationId": "f0fbe8bc227888ff0d6fa08c430dff76",
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Fecha de inicio (formato: Y-m-d). Por defecto: último mes.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Fecha de fin (formato: Y-m-d). Por defecto: hoy.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Estadísticas obtenidas exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Estadísticas de exportación obtenidas exitosamente"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 200
+                                                },
+                                                "exported": {
+                                                    "type": "integer",
+                                                    "example": 150
+                                                },
+                                                "not_exported": {
+                                                    "type": "integer",
+                                                    "example": 50
+                                                },
+                                                "export_percentage": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 75
+                                                },
+                                                "date_range": {
+                                                    "properties": {
+                                                        "start": {
+                                                            "type": "string",
+                                                            "format": "date",
+                                                            "example": "2024-01-01"
+                                                        },
+                                                        "end": {
+                                                            "type": "string",
+                                                            "format": "date",
+                                                            "example": "2024-01-31"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reports/attendance": {
+            "get": {
+                "tags": [
+                    "Reportes"
+                ],
+                "summary": "Reporte de asistencia",
+                "description": "Genera un reporte de asistencia con información de turnos y marcas. Requiere rol de manager.",
+                "operationId": "532af3aaa2f9e5c034b93f6c074a07a0",
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Fecha de inicio del reporte (formato: Y-m-d). Por defecto: inicio del mes actual.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Fecha de fin del reporte (formato: Y-m-d). Por defecto: fin del mes actual.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "worker_id",
+                        "in": "query",
+                        "description": "Filtrar por ID de trabajador",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "area_id",
+                        "in": "query",
+                        "description": "Filtrar por ID de área",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reporte de asistencia generado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reporte de asistencia generado exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "shift_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "worker_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "worker_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "start_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "end_at": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "status": {
+                                                        "type": "string"
+                                                    },
+                                                    "marks_count": {
+                                                        "type": "integer"
+                                                    },
+                                                    "first_mark": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "nullable": true
+                                                    },
+                                                    "last_mark": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "nullable": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos (requiere rol manager)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reports/delays": {
+            "get": {
+                "tags": [
+                    "Reportes"
+                ],
+                "summary": "Reporte de atrasos",
+                "description": "Genera un reporte de atrasos de trabajadores. Requiere rol de manager.",
+                "operationId": "e2ecd1282109cb56ce56d5c1aab50af8",
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Fecha de inicio del reporte (formato: Y-m-d)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Fecha de fin del reporte (formato: Y-m-d)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reporte de atrasos generado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reporte de atrasos generado exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "shift_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "worker_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "worker_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "scheduled_start": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "actual_start": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "delay_minutes": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/reports/overtime": {
+            "get": {
+                "tags": [
+                    "Reportes"
+                ],
+                "summary": "Reporte de horas extras",
+                "description": "Genera un reporte de horas extras trabajadas. Requiere rol de manager.",
+                "operationId": "f4b6a5c338c387c7ada1509e3adc6f2a",
+                "parameters": [
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "description": "Fecha de inicio del reporte (formato: Y-m-d)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "description": "Fecha de fin del reporte (formato: Y-m-d)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reporte de horas extras generado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Reporte de horas extras generado exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "shift_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "worker_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "worker_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "scheduled_end": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "actual_end": {
+                                                        "type": "string",
+                                                        "format": "date-time"
+                                                    },
+                                                    "overtime_minutes": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/users": {
+            "get": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Listar usuarios",
+                "description": "Obtiene una lista de usuarios con filtros opcionales. Requiere rol de admin.",
+                "operationId": "c409474879e75bc857100a5072882dcb",
+                "parameters": [
+                    {
+                        "name": "role",
+                        "in": "query",
+                        "description": "Filtrar por rol",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "worker",
+                                "manager",
+                                "admin"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por estado",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "active",
+                                "inactive"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Buscar por nombre o email",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Número de página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Elementos por página",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 15
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de usuarios",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuarios obtenidos exitosamente"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "users": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/User"
+                                                    }
+                                                },
+                                                "pagination": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos (requiere rol admin)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Crear usuario",
+                "description": "Crea un nuevo usuario en el sistema. Requiere rol de admin.",
+                "operationId": "ad7d1b9c95434bec4520e45032d59df0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserStore"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuario creado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuario creado exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos (requiere rol admin)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/users/{id}": {
+            "get": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Obtener usuario",
+                "description": "Obtiene los detalles de un usuario específico. Admin o el mismo usuario.",
+                "operationId": "b7ae274ce1c4d14ce31980ab033e8b07",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del usuario",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuario obtenido exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sin permisos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuario no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Eliminar usuario",
+                "description": "Elimina un usuario. No se puede eliminar si está asociado a un worker activo. Requiere rol de admin.",
+                "operationId": "af1e0f1a9fb3bb05723ee81d40a96c24",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuario eliminado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuario eliminado exitosamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "No se puede eliminar (está asociado a worker activo)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Usuarios"
+                ],
+                "summary": "Actualizar usuario",
+                "description": "Actualiza un usuario (rol o estado principalmente). Requiere rol de admin.",
+                "operationId": "4bc32e68b44cd34a8f1b1eb707c4b807",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del usuario",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserUpdate"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Usuario actualizado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuario actualizado exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/workers": {
+            "get": {
+                "tags": [
+                    "Trabajadores"
+                ],
+                "summary": "Listar trabajadores",
+                "description": "Obtiene una lista de trabajadores con filtros opcionales. Disponible para managers y workers.",
+                "operationId": "59bc4ff6c8d029b07727ed1fa3b93d97",
+                "parameters": [
+                    {
+                        "name": "area_id",
+                        "in": "query",
+                        "description": "Filtrar por ID de área",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por estado",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "active",
+                                "inactive"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Buscar por nombre o RUT",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de trabajadores",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Trabajadores obtenidos exitosamente"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Worker"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/v1/workers/{id}": {
+            "get": {
+                "tags": [
+                    "Trabajadores"
+                ],
+                "summary": "Obtener trabajador",
+                "description": "Obtiene los detalles de un trabajador específico. Disponible para managers y workers.",
+                "operationId": "e1e6d17ce0de5d48a224f097f1c17788",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del trabajador",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del trabajador",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Trabajador obtenido exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Worker"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Trabajador no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "LoginRequest": {
+                "title": "Login",
+                "description": "Datos para autenticación",
+                "required": [
+                    "email",
+                    "password"
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "manager@example.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "format": "password",
+                        "example": "password123"
+                    }
+                },
+                "type": "object"
+            },
+            "LoginResponse": {
+                "title": "Respuesta de Login",
+                "description": "Respuesta exitosa de autenticación",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Login exitoso"
+                    },
+                    "data": {
+                        "properties": {
+                            "user": {
+                                "type": "object"
+                            },
+                            "token": {
+                                "type": "string",
+                                "example": "1|abcdef123456..."
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "title": "Respuesta de Error",
+                "description": "Formato de respuesta cuando ocurre un error",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Error en la operación"
+                    },
+                    "errors": {
+                        "description": "Errores de validación",
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "Absence": {
+                "title": "Ausencia",
+                "description": "Modelo de ausencia",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "shift_id": {
+                        "type": "integer",
+                        "example": 1,
+                        "nullable": true
+                    },
+                    "worker_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2024-01-15"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "example": "Sin marcas de asistencia",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Device": {
+                "title": "Dispositivo",
+                "description": "Modelo de dispositivo de marcación",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "area_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Reloj Biométrico Principal"
+                    },
+                    "device_key": {
+                        "type": "string",
+                        "example": "CLOCK-001"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "clock",
+                            "logical",
+                            "external"
+                        ],
+                        "example": "clock"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "disabled"
+                        ],
+                        "example": "active"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "DeviceStore": {
+                "title": "Crear Dispositivo",
+                "description": "Datos para crear un nuevo dispositivo",
+                "required": [
+                    "area_id",
+                    "name",
+                    "device_key"
+                ],
+                "properties": {
+                    "area_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Reloj Biométrico Principal"
+                    },
+                    "device_key": {
+                        "description": "Clave única del dispositivo",
+                        "type": "string",
+                        "example": "CLOCK-001"
+                    },
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "clock",
+                            "logical",
+                            "external"
+                        ],
+                        "example": "clock"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "disabled"
+                        ],
+                        "example": "active"
+                    }
+                },
+                "type": "object"
+            },
+            "Mark": {
+                "title": "Marca de Asistencia",
+                "description": "Modelo de marca de asistencia",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "worker_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "device_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "direction": {
+                        "type": "string",
+                        "enum": [
+                            "in",
+                            "out"
+                        ],
+                        "example": "in"
+                    },
+                    "source_type": {
+                        "type": "string",
+                        "enum": [
+                            "remote",
+                            "clock",
+                            "external"
+                        ],
+                        "example": "remote"
+                    },
+                    "marked_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T08:05:00"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "MarkRemote": {
+                "title": "Crear Marca Remota",
+                "description": "Datos para crear una marca desde aplicación remota",
+                "required": [
+                    "worker_id",
+                    "device_id",
+                    "direction",
+                    "marked_at"
+                ],
+                "properties": {
+                    "worker_id": {
+                        "description": "ID del trabajador",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "device_id": {
+                        "description": "ID del dispositivo",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "direction": {
+                        "description": "Dirección: entrada o salida",
+                        "type": "string",
+                        "enum": [
+                            "in",
+                            "out"
+                        ],
+                        "example": "in"
+                    },
+                    "marked_at": {
+                        "description": "Fecha y hora de la marca",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T08:05:00"
+                    }
+                },
+                "type": "object"
+            },
+            "MarkClock": {
+                "title": "Marca desde Reloj",
+                "description": "Datos para crear una marca desde reloj biométrico",
+                "required": [
+                    "worker_rut",
+                    "device_key",
+                    "direction",
+                    "marked_at"
+                ],
+                "properties": {
+                    "worker_rut": {
+                        "description": "RUT del trabajador",
+                        "type": "string",
+                        "example": "11111111-1"
+                    },
+                    "device_key": {
+                        "description": "Clave única del dispositivo",
+                        "type": "string",
+                        "example": "CLOCK-001"
+                    },
+                    "direction": {
+                        "type": "string",
+                        "enum": [
+                            "in",
+                            "out"
+                        ],
+                        "example": "in"
+                    },
+                    "marked_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T08:05:00"
+                    }
+                },
+                "type": "object"
+            },
+            "MarkBatchClock": {
+                "title": "Marcas Batch desde Reloj",
+                "description": "Array de marcas desde reloj biométrico",
+                "required": [
+                    "marks"
+                ],
+                "properties": {
+                    "marks": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MarkClock"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "MarkExternal": {
+                "title": "Crear Marca Externa",
+                "description": "Datos para crear una marca desde sistema externo",
+                "required": [
+                    "worker_id",
+                    "device_id",
+                    "direction",
+                    "marked_at"
+                ],
+                "properties": {
+                    "worker_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "device_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "direction": {
+                        "type": "string",
+                        "enum": [
+                            "in",
+                            "out"
+                        ],
+                        "example": "in"
+                    },
+                    "marked_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T08:05:00"
+                    }
+                },
+                "type": "object"
+            },
+            "Shift": {
+                "title": "Turno",
+                "description": "Modelo de turno de trabajo",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "worker_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "area_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "start_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T08:00:00"
+                    },
+                    "end_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T17:00:00"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "planned",
+                            "in_progress",
+                            "completed",
+                            "inconsistent",
+                            "absent"
+                        ],
+                        "example": "planned"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "ShiftStore": {
+                "title": "Crear Turno",
+                "description": "Datos para crear un nuevo turno",
+                "required": [
+                    "worker_id",
+                    "area_id",
+                    "start_at",
+                    "end_at"
+                ],
+                "properties": {
+                    "worker_id": {
+                        "description": "ID del trabajador",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "area_id": {
+                        "description": "ID del área",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "start_at": {
+                        "description": "Fecha y hora de inicio",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T08:00:00"
+                    },
+                    "end_at": {
+                        "description": "Fecha y hora de fin",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T17:00:00"
+                    }
+                },
+                "type": "object"
+            },
+            "ShiftUpdate": {
+                "title": "Actualizar Turno",
+                "description": "Datos para actualizar un turno existente",
+                "properties": {
+                    "worker_id": {
+                        "description": "ID del trabajador",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "area_id": {
+                        "description": "ID del área",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "start_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T08:00:00"
+                    },
+                    "end_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-15T17:00:00"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "planned",
+                            "in_progress",
+                            "completed",
+                            "inconsistent",
+                            "absent"
+                        ]
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "title": "Usuario",
+                "description": "Modelo de usuario del sistema",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Juan Pérez"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "user@example.com"
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "worker",
+                            "manager",
+                            "admin"
+                        ],
+                        "example": "worker"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive"
+                        ],
+                        "example": "active"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "worker": {
+                        "description": "Trabajador asociado (solo si role es worker)",
+                        "type": "object",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "UserStore": {
+                "title": "Crear Usuario",
+                "description": "Datos para crear un nuevo usuario",
+                "required": [
+                    "name",
+                    "email",
+                    "password",
+                    "role"
+                ],
+                "properties": {
+                    "name": {
+                        "description": "Nombre completo",
+                        "type": "string",
+                        "example": "Juan Pérez"
+                    },
+                    "email": {
+                        "description": "Email único",
+                        "type": "string",
+                        "format": "email",
+                        "example": "user@example.com"
+                    },
+                    "password": {
+                        "description": "Contraseña (mínimo 8 caracteres)",
+                        "type": "string",
+                        "format": "password",
+                        "example": "password123"
+                    },
+                    "role": {
+                        "description": "Rol del usuario",
+                        "type": "string",
+                        "enum": [
+                            "worker",
+                            "manager",
+                            "admin"
+                        ],
+                        "example": "worker"
+                    },
+                    "status": {
+                        "description": "Estado del usuario (opcional)",
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive"
+                        ],
+                        "example": "active"
+                    }
+                },
+                "type": "object"
+            },
+            "UserUpdate": {
+                "title": "Actualizar Usuario",
+                "description": "Datos para actualizar un usuario existente",
+                "properties": {
+                    "name": {
+                        "description": "Nombre completo",
+                        "type": "string",
+                        "example": "Juan Pérez"
+                    },
+                    "email": {
+                        "description": "Email único",
+                        "type": "string",
+                        "format": "email",
+                        "example": "user@example.com"
+                    },
+                    "password": {
+                        "description": "Nueva contraseña (opcional)",
+                        "type": "string",
+                        "format": "password",
+                        "example": "newpassword123"
+                    },
+                    "role": {
+                        "description": "Rol del usuario",
+                        "type": "string",
+                        "enum": [
+                            "worker",
+                            "manager",
+                            "admin"
+                        ],
+                        "example": "manager"
+                    },
+                    "status": {
+                        "description": "Estado del usuario",
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive"
+                        ],
+                        "example": "active"
+                    }
+                },
+                "type": "object"
+            },
+            "Worker": {
+                "title": "Trabajador",
+                "description": "Modelo de trabajador",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "area_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Juan Pérez"
+                    },
+                    "rut": {
+                        "type": "string",
+                        "example": "11111111-1"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive"
+                        ],
+                        "example": "active"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Autenticación mediante token Sanctum. Obtén el token mediante POST /api/v1/auth/login",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            },
+            "apiKey": {
+                "type": "apiKey",
+                "description": "API Key para integraciones externas. Configurar en variable de entorno EXTERNAL_API_KEY",
+                "name": "X-API-KEY",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Autenticación",
+            "description": "Endpoints de autenticación"
+        },
+        {
+            "name": "Turnos",
+            "description": "Gestión de turnos de trabajo"
+        },
+        {
+            "name": "Marcas",
+            "description": "Registro de marcas de asistencia"
+        },
+        {
+            "name": "Trabajadores",
+            "description": "Gestión de trabajadores"
+        },
+        {
+            "name": "Dispositivos",
+            "description": "Gestión de dispositivos de marcación"
+        },
+        {
+            "name": "Reportes",
+            "description": "Generación de reportes de asistencia"
+        },
+        {
+            "name": "Exportación",
+            "description": "Exportación de datos para sistema legado"
+        },
+        {
+            "name": "Usuarios",
+            "description": "Gestión de usuarios del sistema"
+        }
+    ]
+}
